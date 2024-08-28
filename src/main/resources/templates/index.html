@@ -8,24 +8,30 @@
             background-color: #2c3e50;
             color: #ecf0f1;
         }
+
         .container {
             margin-top: 50px;
         }
+
         .form-control, .btn {
             border-radius: 0;
         }
+
         .btn {
             background-color: #34495e;
             color: #ecf0f1;
         }
+
         .btn:hover {
             background-color: #2c3e50;
         }
+
         .source-list {
             background-color: #34495e;
             padding: 20px;
             border-radius: 5px;
         }
+
         .source-item {
             display: flex;
             justify-content: space-between;
@@ -33,9 +39,11 @@
             padding: 10px;
             border-bottom: 1px solid #2c3e50;
         }
+
         .source-item:last-child {
             border-bottom: none;
         }
+
         .source-item span {
             flex-grow: 1;
             overflow: hidden;
@@ -70,23 +78,28 @@
             </form>
             <form action="/search" method="get" class="text-center mb-4">
                 <div class="form-group">
-                    <input type="text" name="keyword" class="form-control" placeholder="Поиск информации по ключевым словам" required>
+                    <input type="text" name="keyword" class="form-control"
+                           placeholder="Поиск информации по ключевым словам" required>
                 </div>
                 <button type="submit" class="btn btn-secondary">Поиск</button>
             </form>
             <div class="search-results mt-4">
-                <h4>Результаты поиска</h4>
+                <h4>Результаты поиска:</h4>
                 <ul class="list-unstyled">
                     <li th:each="item : ${searchResults}">
-                        <span th:text="${item.title}"></span>
+
+                        <a th:href="${item.link.get() }"><p th:text="${item.title.get()}"></p></a>
+                        <p th:text="${item.description}"></p>
+                        <br/>
+                        <br/>
                     </li>
                 </ul>
             </div>
         </div>
     </div>
 </div>
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src=" https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+                        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+                        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

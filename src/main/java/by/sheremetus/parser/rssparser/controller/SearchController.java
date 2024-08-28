@@ -32,7 +32,23 @@ public class SearchController {
             rssList.add(s.getUrl());
         }
         Stream<Item> rssFeed = reader.read(rssList);
+
+
         List<Item> result = rssFeed.collect(Collectors.toList());
+
+//        List<Item> parseList = new ArrayList<>();
+//
+//        for (Item i : result) {
+//            if (i.getTitle().isPresent() && i.getDescription().isPresent()) {
+//                if (i.getDescription().get().contains(keyword)
+//                        || i.getTitle().get().contains(keyword)) {
+//                    parseList.add(i);
+//
+//                }
+//            }
+//        }
+
+
         model.addAttribute("searchResults", result);
 
         return "index"; // Возвращаем на главную страницу
