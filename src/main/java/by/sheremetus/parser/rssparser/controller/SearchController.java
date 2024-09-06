@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,20 +37,20 @@ public class SearchController {
 
         List<Item> result = rssFeed.collect(Collectors.toList());
 
-//        List<Item> parseList = new ArrayList<>();
-//
-//        for (Item i : result) {
-//            if (i.getTitle().isPresent() && i.getDescription().isPresent()) {
-//                if (i.getDescription().get().contains(keyword)
-//                        || i.getTitle().get().contains(keyword)) {
-//                    parseList.add(i);
-//
-//                }
-//            }
-//        }
+        List<Item> parseList = new ArrayList<>();
+
+        for (Item i : result) {
+            if (i.getTitle().isPresent() && i.getDescription().isPresent()) {
+                if (i.getDescription().get().toLowerCase().contains(keyword.toLowerCase())
+                        || i.getTitle().get().toLowerCase().contains(keyword.toLowerCase())) {
+                    parseList.add(i);
+
+                }
+            }
+        }
 
 
-        model.addAttribute("searchResults", result);
+        model.addAttribute("searchResults", parseList);
 
         return "index"; // Возвращаем на главную страницу
     }
