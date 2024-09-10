@@ -55,12 +55,29 @@
 <body>
 <div class="container">
     <div class="row">
-        <div class="col-md-4">
+        <div class="col-md-5">
             <div class="source-list">
                 <h4>Источники</h4>
                 <ul class="list-unstyled">
                     <li th:each="source : ${sources}" class="source-item">
                         <span th:text="${source.url}"></span>
+                        <form action="/delete" method="post" style="display:inline;">
+                            <input type="hidden" name="id" th:value="${source.id}">
+                            <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="col-md-5">
+            <div class="source-list">
+                <h4>Источники telegram</h4>
+                <form action="/getTelegramSources" method="get" class="text-center mb-4">
+                    <button type="submit" class="btn btn-primary">Запросить источники telegram</button>
+                </form>
+                <ul class="list-unstyled">
+                    <li th:each="source : ${tgSources}" class="source-item">
+                        <span th:text="${source}"></span>
                         <form action="/delete" method="post" style="display:inline;">
                             <input type="hidden" name="id" th:value="${source.id}">
                             <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
@@ -78,8 +95,7 @@
             </form>
             <form action="/search" method="get" class="text-center mb-4">
                 <div class="form-group">
-                    <input type="text" name="keyword" class="form-control"
-                           placeholder="Поиск информации по ключевым словам" required>
+                    <input type="text" name="keyword" class="form-control" placeholder="Поиск информации по ключевым словам" required>
                 </div>
                 <button type="submit" class="btn btn-secondary">Поиск</button>
             </form>
@@ -87,19 +103,19 @@
                 <h4>Результаты поиска:</h4>
                 <ul class="list-unstyled">
                     <li th:each="item : ${searchResults}">
-
-                        <a th:href="${item.link.get() }"><p th:text="${item.title.get()}"></p></a>
+                        <a th:href="${item.link.get()}"><p th:text="${item.title.get()}"></p></a>
                         <p th:text="${item.description}"></p>
                         <br/>
                         <br/>
                     </li>
                 </ul>
             </div>
+
         </div>
     </div>
 </div>
-<script src=" https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-                        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
-                        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

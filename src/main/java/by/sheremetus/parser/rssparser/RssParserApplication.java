@@ -8,6 +8,8 @@ public class RssParserApplication {
 
 
     public static void main(String[] args) {
+
+
         SpringApplication.run(RssParserApplication.class, args);
     }
 
