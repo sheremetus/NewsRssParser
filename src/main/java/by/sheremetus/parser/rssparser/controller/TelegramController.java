@@ -1,11 +1,14 @@
 package by.sheremetus.parser.rssparser.controller;
 
+import by.sheremetus.parser.rssparser.entity.Source;
 import by.sheremetus.parser.rssparser.entity.TgSource;
+import by.sheremetus.parser.rssparser.repo.SourceRepository;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.stream.JsonReader;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,13 +23,16 @@ import java.util.List;
 @Controller
 public class TelegramController {
 
+    @Autowired
+    public SourceRepository sourceRepository;
+
     @GetMapping("/getTelegramSources")
     public String getTelegramSources(Model model) {
 
         try {
 // Запуск первого скрипта для получения списка каналов
             ProcessBuilder pb1 = new ProcessBuilder("C:\\Users\\kirja\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
-                    "D:\\Java\\Проекты\\RSSParser\\TelegramEbookConverter\\dialogs.py");
+                    "D:\\Java\\Проекты\\RSSParser\\dialogs.py");
             pb1.redirectErrorStream(true); // Объединение stdout и stderr
             Process process1 = pb1.start();
 
@@ -58,7 +64,7 @@ public class TelegramController {
             List<TgSource> tgSources = new ArrayList<>();
             for (JsonElement element : channels) {
                 JsonObject channel = element.getAsJsonObject();
-                int index = channel.get("index").getAsInt();
+                int index = channel.get("idx").getAsInt();
                 String name = channel.get("name").getAsString();
                 TgSource tgSource = new TgSource(index, name);
                 tgSources.add(tgSource);
@@ -70,7 +76,8 @@ public class TelegramController {
             e.printStackTrace();
         }
 
-
+        List<Source> sourceList = sourceRepository.findAll();
+        model.addAttribute("sources", sourceList);
         return "index";
     }
 }

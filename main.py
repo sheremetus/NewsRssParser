@@ -106,12 +106,14 @@ async def main():
             dialog = Dialog(id=d.entity.id, name=d.entity.title)
             dialogs.append(dialog)
 
-        with open('indices.txt', 'r') as file:
-            indices = [int(line.strip()) - 1 for line in file]
-            assert all(0 <= idx < len(dialogs) for idx in indices), 'Dialog indices should be correct'
+        for i, d in enumerate(dialogs):
+            print(i+1, d)
+        print()
+        indices = input('Enter dialog indices to convert (comma-separated): ')
+        indices = [int(idx) - 1 for idx in indices.split(',')]
+        assert all(0 <= idx < len(dialogs) for idx in indices), 'Dialog indices should be correct'
 
-        with open('limit.txt', 'r') as file:
-            limit = int(file.read().strip())
+        limit = int(input('Enter message limit: '))
 
         tasks = [process_dialog(client, dialogs[idx], limit) for idx in indices]
         await asyncio.gather(*tasks)

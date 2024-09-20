@@ -10,7 +10,14 @@
         }
 
         .container {
-            margin-top: 50px;
+            margin-top: 20px;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .row {
+            margin-left: 0;
+            margin-right: 0;
         }
 
         .form-control, .btn {
@@ -20,6 +27,7 @@
         .btn {
             background-color: #34495e;
             color: #ecf0f1;
+            width: auto;
         }
 
         .btn:hover {
@@ -30,6 +38,7 @@
             background-color: #34495e;
             padding: 20px;
             border-radius: 5px;
+            margin-bottom: 20px;
         }
 
         .source-item {
@@ -50,12 +59,18 @@
             text-overflow: ellipsis;
             white-space: nowrap;
         }
+
+        .search-results {
+            background-color: #34495e;
+            padding: 10px;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="row">
-        <div class="col-md-5">
+<div class="container-fluid">
+    <div class="row no-gutters">
+        <div class="col-md-2">
             <div class="source-list">
                 <h4>Источники</h4>
                 <ul class="list-unstyled">
@@ -69,53 +84,78 @@
                 </ul>
             </div>
         </div>
-        <div class="col-md-5">
+        <div class="col-md-2">
             <div class="source-list">
                 <h4>Источники telegram</h4>
                 <form action="/getTelegramSources" method="get" class="text-center mb-4">
                     <button type="submit" class="btn btn-primary">Запросить источники telegram</button>
                 </form>
-                <ul class="list-unstyled">
+
+
+                <form action="/searchAll" method="get" class="text-center mb-4">
+
                     <li th:each="source : ${tgSources}" class="source-item">
-                        <span th:text="${source}"></span>
-                        <form action="/delete" method="post" style="display:inline;">
-                            <input type="hidden" name="id" th:value="${source.id}">
-                            <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
-                        </form>
+                        <input type="checkbox" name="sourceIndex" th:value="${source.idx}"/>
+                        <span th:text="${source.getName()}"></span>
                     </li>
-                </ul>
+
+                    <br>
+
             </div>
         </div>
         <div class="col-md-8">
-            <form action="/add" method="post" class="text-center mb-4">
-                <div class="form-group">
-                    <input type="text" name="url" class="form-control" placeholder="Добавить источник" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Добавить</button>
-            </form>
-            <form action="/search" method="get" class="text-center mb-4">
-                <div class="form-group">
-                    <input type="text" name="keyword" class="form-control" placeholder="Поиск информации по ключевым словам" required>
-                </div>
+
+
+            <div class="form-group">
+                <input type="text" name="limit" class="form-control"
+                       placeholder="Лимит проверяемых сообщений в телеграмме" required>
+            </div>
+            <div class="form-group">
+                <input type="text" name="keyword" class="form-control"
+                       placeholder="Поиск информации по ключевым словам по телеграмму и RSS" required>
+            </div>
+            <br>
+            <label for="date">Выберите дату с которой начать поиск:</label>
+            <input type="date" name="date" class="form-control" id="date">
+            <br>
+            <div class="form-group">
                 <button type="submit" class="btn btn-secondary">Поиск</button>
+            </div>
+            <br>
+
             </form>
             <div class="search-results mt-4">
                 <h4>Результаты поиска:</h4>
                 <ul class="list-unstyled">
-                    <li th:each="item : ${searchResults}">
+                    <li th:each="res : ${resultsTg}">
+                        <p th:text="${res.section}"></p>
+                        <img width="400" height="300"
+                             th:src="'data:image/png;base64,' + ${@thymeleafUtil.encodeBase64(res.image)}"/>
+                        <br/>
+                    </li>
+                </ul>
+                <br>
+                <br>
+                <h4>Результаты поиска по сайтам</h4>
+                <ul class="list-unstyled">
+                    <li th:each="item : ${resultsRSS}">
                         <a th:href="${item.link.get()}"><p th:text="${item.title.get()}"></p></a>
-                        <p th:text="${item.description}"></p>
+                        <p th:text="${item.getPubDate().get()}"></p>
+                        <p th:text="${item.getDescription().get}"></p>
                         <br/>
                         <br/>
                     </li>
                 </ul>
             </div>
 
+
         </div>
     </div>
 </div>
+
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
 </body>
 </html>

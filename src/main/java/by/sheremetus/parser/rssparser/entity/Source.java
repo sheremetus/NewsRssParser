@@ -6,20 +6,17 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 
 @Entity
-public class TgSource {
+public class Source {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    private String url;
 
-    private int idx;
-    private String name;
-
-    public TgSource() {
+    public Source() {
     }
 
-    public TgSource(int index, String name) {
-        this.idx = index;
-        this.name = name;
+    public Source(String url) {
+        this.url = url;
     }
 
     public Long getId() {
@@ -30,19 +27,11 @@ public class TgSource {
         this.id = id;
     }
 
-    public int getIdx() {
-        return idx;
+    public String getUrl() {
+        return url;
     }
 
-    public void setIdx(int idx) {
-        this.idx = idx;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public void setUrl(String url) {
+        this.url = url;
     }
 }
