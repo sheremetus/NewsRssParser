@@ -7,7 +7,7 @@ import re
 import sys
 
 from tqdm.asyncio import tqdm
-
+from datetime import datetime
 from PIL import Image
 from dotenv import load_dotenv
 from ebooklib import epub
@@ -32,7 +32,7 @@ def message_to_html(msg, image_path):
 
     return html_body
 
-async def process_dialog(client, dialog, limit):
+async def process_dialog(client, dialog, limit, start_date, end_date):
     book = epub.EpubBook()
     book.set_identifier(str(dialog.id))
     book.set_title(dialog.name)
@@ -44,6 +44,14 @@ async def process_dialog(client, dialog, limit):
     msg_iter = client.iter_messages(dialog.id, reverse=False, limit=limit)
     async for msg in tqdm(msg_iter, total=msg_cnt):
         if not (msg.text or msg.photo):
+            continue
+
+        msg_date_naive = msg.date.replace(tzinfo=None)
+
+        if msg_date_naive < start_date:
+            continue
+
+        if msg_date_naive > end_date:
             continue
 
         image_path = None
@@ -97,6 +105,12 @@ async def main():
     client = TelegramClient('session', api_id, api_hash)
     client.parse_mode = 'html'
 
+    with open('start_date.txt', 'r') as file:
+        start_date = datetime.strptime(file.read().strip(), '%Y-%m-%d')
+
+    with open('end_date.txt', 'r') as file:
+        end_date = datetime.strptime(file.read().strip(), '%Y-%m-%d')
+
     async with client:
         dialogs = []
         async for d in client.iter_dialogs():
@@ -113,7 +127,7 @@ async def main():
         with open('limit.txt', 'r') as file:
             limit = int(file.read().strip())
 
-        tasks = [process_dialog(client, dialogs[idx], limit) for idx in indices]
+        tasks = [process_dialog(client, dialogs[idx], limit, start_date, end_date) for idx in indices]
         await asyncio.gather(*tasks)
 
 if __name__ == '__main__':

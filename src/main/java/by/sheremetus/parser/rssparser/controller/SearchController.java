@@ -3,16 +3,19 @@ package by.sheremetus.parser.rssparser.controller;
 import by.sheremetus.parser.rssparser.entity.SearchResult;
 import by.sheremetus.parser.rssparser.entity.Source;
 import by.sheremetus.parser.rssparser.repo.SourceRepository;
+import by.sheremetus.parser.rssparser.util.DateUtil;
 import by.sheremetus.parser.rssparser.util.SearchUtil;
 import com.apptasticsoftware.rssreader.Item;
 import com.apptasticsoftware.rssreader.RssReader;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -39,12 +42,15 @@ public class SearchController {
     public String searchAll(@RequestParam String keyword, Model model,
                             @RequestParam("sourceIndex") List<Integer> sourceIndices,
                             @RequestParam("limit") String limit,
-                            @RequestParam(name = "date", required = false) Date date
-                            ) {
+                            @RequestParam("start_date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date start_date,
+                            @RequestParam("end_date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date end_date
+
+    ) {
 
         List<Item> resultsRSS = searchRSS(keyword, model);
         EpubController epubController = new EpubController();
-
+        DateUtil.makeStartDateFile(new SimpleDateFormat("yyyy-MM-dd").format(start_date), "start_date.txt");
+        DateUtil.makeEndDateFile(new SimpleDateFormat("yyyy-MM-dd").format(end_date), "end_date.txt");
         epubController.makeIdxFile(sourceIndices, "indices.txt");
         epubController.makeLimitFile(limit, "limit.txt");
         epubController.startProcessing();
