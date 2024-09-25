@@ -21,7 +21,7 @@ class Dialog(object):
     id: int
     name: str
 
-def message_to_html(msg, image_path):
+def message_to_html(msg, image_path, msg_link):
     html_body = ''
     if image_path:
         html_body += f'<img src="{image_path}"/>'
@@ -29,6 +29,9 @@ def message_to_html(msg, image_path):
     if msg:
         msg = re.sub(r'\n', r'<br>', msg)
         html_body += msg
+
+    if msg_link:
+        html_body += f'<br><a href="{msg_link}">Ссылка на пост</a>'
 
     return html_body
 
@@ -40,8 +43,9 @@ async def process_dialog(client, dialog, limit, start_date, end_date):
 
     msg_cnt = limit or sum([1 async for _ in client.iter_messages(dialog.id)])
 
+
     chapters = []
-    msg_iter = client.iter_messages(dialog.id, reverse=False, limit=limit)
+    msg_iter = client.iter_messages(dialog.id,reverse=False, limit=limit)
     async for msg in tqdm(msg_iter, total=msg_cnt):
         if not (msg.text or msg.photo):
             continue
@@ -78,12 +82,14 @@ async def process_dialog(client, dialog, limit, start_date, end_date):
             )
             book.add_item(image)
 
+        msg_link = await client.get_message_link(dialog.id, msg.id)
+
         chapter = epub.EpubHtml(
             title=msg.date.strftime(r'%Y-%m-%d %H:%M:%S'),
             file_name=f'msg_{msg.id}.xhtml',
             lang='ru',
         )
-        html = message_to_html(msg.text, image_path)
+        html = message_to_html(msg.text, image_path, msg_link)
         chapter.set_content(html)
 
         book.add_item(chapter)

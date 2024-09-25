@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -63,7 +64,9 @@ public class SearchController {
         }
         model.addAttribute("resultsTg", resultsTg);
         model.addAttribute("resultsRSS", resultsRSS);
+        List<String> keywords = Arrays.asList(keyword.trim().split(","));
 
+        model.addAttribute("keywords", keywords);
         return "index"; // Возвращаем на главную страницу
 
     }
@@ -87,7 +90,6 @@ public class SearchController {
 
         for (Item i : result) {
             if (i.getTitle().isPresent() && i.getDescription().isPresent()) {
-
 
 
                 if (SearchUtil.isParseTextHasKey(i.getDescription().get(), keyword) ||
