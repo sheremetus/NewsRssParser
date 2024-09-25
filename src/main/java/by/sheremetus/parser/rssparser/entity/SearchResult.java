@@ -6,11 +6,13 @@ import java.util.Date;
 public class SearchResult {
     private String section;
     private byte[] image;
+    private String linkHref;
     private Date date;
 
-    public SearchResult(String section, byte[] image) {
+    public SearchResult(String section, byte[] image, String linkHref) {
         this.section = section;
         this.image = image;
+        this.linkHref =linkHref;
     }
 
     public void setSection(String section) {
@@ -35,5 +37,13 @@ public class SearchResult {
 
     public byte[] getImage() {
         return image;
+    }
+
+    public String getLinkHref() {
+        return linkHref;
+    }
+
+    public void setLinkHref(String linkHref) {
+        this.linkHref = linkHref;
     }
 }

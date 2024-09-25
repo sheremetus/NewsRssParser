@@ -20,6 +20,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 class Dialog(object):
     id: int
     name: str
+    username: str  # Добавляем поле для имени пользователя
 
 def message_to_html(msg, image_path, msg_link):
     html_body = ''
@@ -45,7 +46,7 @@ async def process_dialog(client, dialog, limit, start_date, end_date):
 
 
     chapters = []
-    msg_iter = client.iter_messages(dialog.id,reverse=False, limit=limit)
+    msg_iter = client.iter_messages(dialog.id, reverse=False, limit=limit)
     async for msg in tqdm(msg_iter, total=msg_cnt):
         if not (msg.text or msg.photo):
             continue
@@ -59,6 +60,9 @@ async def process_dialog(client, dialog, limit, start_date, end_date):
             continue
 
         image_path = None
+        # Составляем ссылку вручную
+        msg_link = f'https://t.me/{dialog.username}/{msg.id}'
+
         if msg.photo and not msg.web_preview:
             image_bytes = await msg.download_media(file=bytes)
             await asyncio.sleep(0.1)
@@ -82,7 +86,6 @@ async def process_dialog(client, dialog, limit, start_date, end_date):
             )
             book.add_item(image)
 
-        msg_link = await client.get_message_link(dialog.id, msg.id)
 
         chapter = epub.EpubHtml(
             title=msg.date.strftime(r'%Y-%m-%d %H:%M:%S'),
@@ -123,7 +126,7 @@ async def main():
             if not d.is_channel:
                 continue
 
-            dialog = Dialog(id=d.entity.id, name=d.entity.title)
+            dialog = Dialog(id=d.entity.id, name=d.entity.title, username=d.entity.username)
             dialogs.append(dialog)
 
         with open('indices.txt', 'r') as file:

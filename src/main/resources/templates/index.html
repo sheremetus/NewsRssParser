@@ -3,7 +3,8 @@
 <head>
     <title>Source List</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css"
+          rel="stylesheet">
 
     <style>
         .lires {
@@ -143,6 +144,8 @@
                             <img width="400" height="300"
                                  th:src="'data:image/png;base64,' + ${@thymeleafUtil.encodeBase64(res.image)}"/>
                         </a>
+                        <a th:href="${res.linkHref}">link</a>
+
                         <br/>
                     </li>
                 </ul>

@@ -13,8 +13,9 @@ import java.util.Base64;
 @Component
 public class ThymeleafUtil {
     public String encodeBase64(byte[] input) {
+        if (input == null) {
+            return "";
+        }
         return Base64.getEncoder().encodeToString(input);
     }
-
-
 }

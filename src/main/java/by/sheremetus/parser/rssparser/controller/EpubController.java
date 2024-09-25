@@ -11,9 +11,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
@@ -35,20 +32,6 @@ public class EpubController {
         this.templateEngine.setTemplateResolver(resolver);
     }
 
-/*    @GetMapping("/tgSearch")
-    public String searchAndRender(@RequestParam("keyword") String keyword,
-                                  @RequestParam("sourceIndex") List<Integer> sourceIndices,
-                                  @RequestParam("limit") String limit,
-                                  Model model) throws IOException {
-
-
-        makeIdxFile(sourceIndices, "indices.txt");
-        makeLimitFile(limit, "limit.txt");
-        startProcessing();
-        List<SearchResult> results = searchBooks(keyword);
-        model.addAttribute("results", results);
-        return "index";
-    }*/
 
     public void makeIdxFile(List<Integer> sourceIndices, String fileName) {
 
@@ -104,7 +87,7 @@ public class EpubController {
                     if (SearchUtil.isParseTextHasKey(content, keyword)) {
                         Document doc = Jsoup.parse(content);
                         Elements images = doc.select("img");
-
+                        Elements links = doc.select("a");
                         for (Element img : images) {
                             String imgSrc = img.attr("src");
                             byte[] image = null;
@@ -116,10 +99,22 @@ public class EpubController {
                                     image = imgResource.getData();
                                 }
                             }
-                            results.add(new SearchResult(Jsoup.parse(content).text(), image));
+
+                            for (Element link : links) {
+                                String linkSrc = link.attr("href");
+
+                                results.add(new SearchResult(Jsoup.parse(content).text(), image, linkSrc));
+                            }
+
+
                         }
+
+
+
                     }
                 }
+
+
             }
         }
 
