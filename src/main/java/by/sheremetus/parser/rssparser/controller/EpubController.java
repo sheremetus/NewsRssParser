@@ -10,18 +10,28 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.Arrays;
 
 @Controller
 public class EpubController {
 
-    private TemplateEngine templateEngine;
+    private final TemplateEngine templateEngine;
+
+    private final String directoryPath = "D:/Java/Проекты/RSSParser/results";
+    private final String pythonExecutablePath = "C:/Users/kirja/AppData/Local/Programs/Python/Python312/python.exe";
+    private final String pythonScriptPath = "D:/Java/Проекты/RSSParser/process.py";
 
     @Autowired
     public EpubController() {
@@ -32,147 +42,127 @@ public class EpubController {
         this.templateEngine.setTemplateResolver(resolver);
     }
 
-
     public void makeIdxFile(List<Integer> sourceIndices, String fileName) {
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
-            for (Integer index : sourceIndices) {
-                writer.write(index.toString());
-                writer.newLine();
-            }
+        try {
+            Files.write(Paths.get(fileName), sourceIndices.stream().map(Object::toString).collect(Collectors.toList()));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Error writing to index file", e);
         }
-
-    }
-
-    public void makeLimitFile(String limit, String fileName) {
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {
-            writer.write(limit);
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
     }
 
     public List<SearchResult> searchBooks(String keyword) throws IOException {
         List<SearchResult> results = new ArrayList<>();
         EpubReader epubReader = new EpubReader();
 
-        List<String> filePaths = new ArrayList<>();
+        List<String> filePaths = getEpubFilePaths();
 
-        String directoryPath = "D:\\Java\\Проекты\\RSSParser\\results";
+        for (String filePath : filePaths) {
+            results.addAll(searchBook(filePath, keyword, epubReader));
+        }
+
+        cleanDirectory();
+
+        return results;
+    }
+
+    private List<String> getEpubFilePaths() {
+        File directory = new File(directoryPath);
+        if (!directory.exists() || !directory.isDirectory()) {
+            throw new IllegalStateException("Invalid directory path: " + directoryPath);
+        }
+
+        File[] files = directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".epub"));
+        if (files == null) {
+            return new ArrayList<>();
+        }
+
+        return Arrays.stream(files).map(File::getAbsolutePath).collect(Collectors.toList());
+    }
+
+    private List<SearchResult> searchBook(String filePath, String keyword, EpubReader epubReader) throws IOException {
+        List<SearchResult> results = new ArrayList<>();
+        try (FileInputStream fis = new FileInputStream(filePath)) {
+            Book book = epubReader.readEpub(fis);
+            for (Resource resource : book.getContents()) {
+                String content = new String(resource.getData());
+                if (SearchUtil.isParseTextHasKey(content, keyword)) {
+                    results.add(createSearchResult(content, book));
+                }
+            }
+        }
+        return results;
+    }
+
+    private SearchResult createSearchResult(String content, Book book) {
+        Document doc = Jsoup.parse(content);
+        List<byte[]> imgList = extractImages(doc, book);
+        List<String> linksList = extractLinks(doc);
+        return new SearchResult(doc.text(), imgList, linksList);
+    }
+
+    private List<byte[]> extractImages(Document doc, Book book) {
+        return doc.select("img").stream()
+                .map(img -> img.attr("src"))
+                .filter(src -> src.startsWith("images/"))
+                .map(book.getResources()::getByHref)
+                .filter(Objects::nonNull)
+                .map(imgResource -> {
+                    try {
+                        return imgResource.getData();
+                    } catch (IOException e) {
+                        System.err.println("Error reading image data: " + e.getMessage());
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private List<String> extractLinks(Document doc) {
+        return doc.select("a").stream()
+                .map(link -> link.attr("href"))
+                .collect(Collectors.toList());
+    }
+
+    private void cleanDirectory() {
         File directory = new File(directoryPath);
         if (directory.exists() && directory.isDirectory()) {
             File[] files = directory.listFiles();
             if (files != null) {
                 for (File file : files) {
-                    if (file.isFile()) {
-                        filePaths.add(file.getAbsolutePath());
+                    if (file.isFile() && !file.delete()) {
+                        System.err.println("Failed to delete: " + file.getAbsolutePath());
                     }
                 }
             }
         }
-
-
-        for (String filePath : filePaths) {
-            try (FileInputStream fis = new FileInputStream(filePath)) {
-                Book book = epubReader.readEpub(fis);
-
-                for (Resource resource : book.getContents()) {
-                    String content = new String(resource.getData());
-                    if (SearchUtil.isParseTextHasKey(content, keyword)) {
-                        Document doc = Jsoup.parse(content);
-                        Elements images = doc.select("img");
-                        Elements links = doc.select("a");
-                        List<String> linksList = new ArrayList<>();
-                        List<byte[]> imgList = new ArrayList<>();
-
-                        for (Element img : images) {
-                            String imgSrc = img.attr("src");
-                            byte[] image = null;
-
-                            if (imgSrc.startsWith("images/")) {
-                                Resource imgResource = book.getResources().getByHref(imgSrc);
-
-                                if (imgResource != null) {
-                                    image = imgResource.getData();
-                                    imgList.add(image);
-                                }
-                            }
-
-                        }
-
-                        for (Element link : links) {
-                            String linkSrc = link.attr("href");
-                            linksList.add(linkSrc);
-                        }
-                        results.add(new SearchResult(Jsoup.parse(content).text(), imgList, linksList));
-                    }
-                }
-            }
-        }
-
-
-        // отчистка директории
-        if (directory.exists() && directory.isDirectory()) {
-            File[] files = directory.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    if (file.isFile()) {
-                        boolean deleted = file.delete();
-                        if (deleted) {
-                            System.out.println("Deleted: " + file.getAbsolutePath());
-                        } else {
-                            System.out.println("Failed to delete: " + file.getAbsolutePath());
-                        }
-                    }
-                }
-            }
-        }
-
-
-        return results;
     }
 
     public void startProcessing() {
 
-        ProcessBuilder pb1 = new ProcessBuilder(
-                "C:\\Users\\kirja\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
-                "D:\\Java\\Проекты\\RSSParser\\process.py");
-        pb1.redirectErrorStream(true); // Объединение stdout и stderr
-        Process process1 = null;
-        try {
-            process1 = pb1.start();
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        if (pythonExecutablePath == null || pythonScriptPath == null) {
+            throw new IllegalStateException("Python executable path or script path is not set");
         }
+        ProcessBuilder pb = new ProcessBuilder(pythonExecutablePath, pythonScriptPath);
+        pb.redirectErrorStream(true);
 
-// Чтение вывода процесса
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(process1.getInputStream()))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                System.out.println(line);
+        try {
+            Process process = pb.start();
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println(line);
+                }
             }
-        } catch (IOException ioException) {
-            ioException.printStackTrace();
-        }
 
-// Ожидание завершения процесса
-        int exitCode = 0;
-        try {
-            exitCode = process1.waitFor();
-        } catch (InterruptedException ex) {
-            ex.printStackTrace();
+            int exitCode = process.waitFor();
+            if (exitCode == 0) {
+                System.out.println("Скрипт парсинга выполнен успешно.");
+            } else {
+                System.err.println("Ошибка выполнения скрипта. Код выхода: " + exitCode);
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("Error executing Python script", e);
         }
-        if (exitCode == 0) {
-            System.out.println("Скрипт парсинга выполнен успешно.");
-        } else {
-            System.out.println("Ошибка выполнения скрипта. Код выхода: " + exitCode);
-        }
-
-
     }
 }

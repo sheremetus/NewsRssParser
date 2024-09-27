@@ -42,21 +42,16 @@ async def process_dialog(client, dialog, start_date, end_date):
     book.set_title(dialog.name)
     book.set_language('ru')
     # Подсчитываем количество сообщений в заданном промежутке дат
-    msg_cnt = sum([1 async for msg in client.iter_messages(dialog.id) if start_date <= msg.date.replace(tzinfo=None) <= end_date])
-
-
     chapters = []
-    msg_iter = client.iter_messages(dialog.id, reverse=False)
-    async for msg in tqdm(msg_iter, total=msg_cnt):
-        if not (msg.text or msg.photo):
-            continue
+    msg_iter = client.iter_messages(dialog.id, offset_date=end_date)
 
+    async for msg in tqdm(msg_iter, desc=f"Processing {dialog.name}"):
         msg_date_naive = msg.date.replace(tzinfo=None)
 
         if msg_date_naive < start_date:
-            continue
+            break  # Прерываем цикл, если дошли до сообщений раньше начальной даты
 
-        if msg_date_naive > end_date:
+        if not (msg.text or msg.photo):
             continue
 
         image_path = None
@@ -85,7 +80,6 @@ async def process_dialog(client, dialog, start_date, end_date):
                 content=compressed_image.getvalue(),
             )
             book.add_item(image)
-
 
         chapter = epub.EpubHtml(
             title=msg.date.strftime(r'%Y-%m-%d %H:%M:%S'),
@@ -135,7 +129,7 @@ async def main():
 
 
 
-        tasks = [process_dialog(client, dialogs[idx], start_date, end_date) for idx in indices]
+        tasks = [process_dialog(client, dialogs[idx],  start_date, end_date) for idx in indices]
         await asyncio.gather(*tasks)
 
 if __name__ == '__main__':
