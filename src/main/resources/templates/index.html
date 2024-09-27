@@ -140,12 +140,18 @@
                 <ul class="list-unstyled">
                     <li class="lires" th:each="res : ${resultsTg}">
                         <p th:text="${res.section}"></p>
-                        <a href="#" onclick="openImage('${@thymeleafUtil.encodeBase64(res.image)}')">
-                            <img width="400" height="300"
-                                 th:src="'data:image/png;base64,' + ${@thymeleafUtil.encodeBase64(res.image)}"/>
-                        </a>
-                        <a th:href="${res.linkHref}">link</a>
+                        <div th:each="img : ${res.image}">
 
+                            <a href="#" onclick="openImage('${@thymeleafUtil.encodeBase64(res.image)}')">
+                                <img width="400" height="300"
+                                     th:src="'data:image/png;base64,' + ${@thymeleafUtil.encodeBase64(img)}"/>
+                            </a>
+
+                        </div>
+                        <br/>
+                        <div th:each="link : ${res.linkHref}">
+                            <a th:href="${link}">link</a>
+                        </div>
                         <br/>
                     </li>
                 </ul>

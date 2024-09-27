@@ -72,10 +72,10 @@ public class EpubController {
                     if (file.isFile()) {
                         filePaths.add(file.getAbsolutePath());
                     }
-
                 }
             }
         }
+
 
         for (String filePath : filePaths) {
             try (FileInputStream fis = new FileInputStream(filePath)) {
@@ -83,11 +83,13 @@ public class EpubController {
 
                 for (Resource resource : book.getContents()) {
                     String content = new String(resource.getData());
-
                     if (SearchUtil.isParseTextHasKey(content, keyword)) {
                         Document doc = Jsoup.parse(content);
                         Elements images = doc.select("img");
                         Elements links = doc.select("a");
+                        List<String> linksList = new ArrayList<>();
+                        List<byte[]> imgList = new ArrayList<>();
+
                         for (Element img : images) {
                             String imgSrc = img.attr("src");
                             byte[] image = null;
@@ -97,24 +99,19 @@ public class EpubController {
 
                                 if (imgResource != null) {
                                     image = imgResource.getData();
+                                    imgList.add(image);
                                 }
                             }
 
-                            for (Element link : links) {
-                                String linkSrc = link.attr("href");
-
-                                results.add(new SearchResult(Jsoup.parse(content).text(), image, linkSrc));
-                            }
-
-
                         }
 
-
-
+                        for (Element link : links) {
+                            String linkSrc = link.attr("href");
+                            linksList.add(linkSrc);
+                        }
+                        results.add(new SearchResult(Jsoup.parse(content).text(), imgList, linksList));
                     }
                 }
-
-
             }
         }
 

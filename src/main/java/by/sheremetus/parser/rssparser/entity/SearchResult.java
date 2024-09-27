@@ -2,24 +2,30 @@
 package by.sheremetus.parser.rssparser.entity;
 
 import java.util.Date;
+import java.util.List;
 
 public class SearchResult {
     private String section;
-    private byte[] image;
-    private String linkHref;
+    private List<byte[]> image;
+    private List<String> linkHref;
     private Date date;
 
-    public SearchResult(String section, byte[] image, String linkHref) {
+    public SearchResult(String section, List<byte[]> image, List<String> linkHref) {
         this.section = section;
         this.image = image;
-        this.linkHref =linkHref;
+        this.linkHref = linkHref;
     }
 
     public void setSection(String section) {
         this.section = section;
     }
 
-    public void setImage(byte[] image) {
+
+    public List<byte[]> getImage() {
+        return image;
+    }
+
+    public void setImage(List<byte[]> image) {
         this.image = image;
     }
 
@@ -35,15 +41,11 @@ public class SearchResult {
         return section;
     }
 
-    public byte[] getImage() {
-        return image;
-    }
-
-    public String getLinkHref() {
+    public List<String> getLinkHref() {
         return linkHref;
     }
 
-    public void setLinkHref(String linkHref) {
+    public void setLinkHref(List<String> linkHref) {
         this.linkHref = linkHref;
     }
 }

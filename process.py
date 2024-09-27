@@ -36,17 +36,17 @@ def message_to_html(msg, image_path, msg_link):
 
     return html_body
 
-async def process_dialog(client, dialog, limit, start_date, end_date):
+async def process_dialog(client, dialog, start_date, end_date):
     book = epub.EpubBook()
     book.set_identifier(str(dialog.id))
     book.set_title(dialog.name)
     book.set_language('ru')
-
-    msg_cnt = limit or sum([1 async for _ in client.iter_messages(dialog.id)])
+    # Подсчитываем количество сообщений в заданном промежутке дат
+    msg_cnt = sum([1 async for msg in client.iter_messages(dialog.id) if start_date <= msg.date.replace(tzinfo=None) <= end_date])
 
 
     chapters = []
-    msg_iter = client.iter_messages(dialog.id, reverse=False, limit=limit)
+    msg_iter = client.iter_messages(dialog.id, reverse=False)
     async for msg in tqdm(msg_iter, total=msg_cnt):
         if not (msg.text or msg.photo):
             continue
@@ -133,10 +133,9 @@ async def main():
             indices = [int(line.strip()) - 1 for line in file]
             assert all(0 <= idx < len(dialogs) for idx in indices), 'Dialog indices should be correct'
 
-        with open('limit.txt', 'r') as file:
-            limit = int(file.read().strip())
 
-        tasks = [process_dialog(client, dialogs[idx], limit, start_date, end_date) for idx in indices]
+
+        tasks = [process_dialog(client, dialogs[idx], start_date, end_date) for idx in indices]
         await asyncio.gather(*tasks)
 
 if __name__ == '__main__':
