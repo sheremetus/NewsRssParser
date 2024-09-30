@@ -1,9 +1,13 @@
 1
-2
 3
 4
+<<<<<<< HEAD
 5
 <<<<<<< HEAD
 7
 =======
 >>>>>>> parent of dc07f22 (add posting python script, fix bugs, modify application to auto posting)
+=======
+7
+8
+>>>>>>> parent of 75ebe58 (fix bugs)

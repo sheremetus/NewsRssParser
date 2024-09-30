@@ -1,5 +1,9 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 2024-09-23
 =======
 2024-09-25
 >>>>>>> parent of dc07f22 (add posting python script, fix bugs, modify application to auto posting)
+=======
+2024-09-24
+>>>>>>> parent of 75ebe58 (fix bugs)
