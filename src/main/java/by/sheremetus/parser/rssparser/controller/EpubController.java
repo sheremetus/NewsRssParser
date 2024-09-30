@@ -11,12 +11,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
@@ -169,24 +164,5 @@ public class EpubController {
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException("Error executing Python script", e);
         }
-    }
-
-
-    @PostMapping("/postToTelegram")
-    public String postToTelegram(@RequestParam String text, RedirectAttributes redirectAttributes) {
-        try {
-            ProcessBuilder processBuilder = new ProcessBuilder("python", "telegram_poster.py", text);
-            Process process = processBuilder.start();
-            int exitCode = process.waitFor();
-        
-            if (exitCode == 0) {
-                redirectAttributes.addFlashAttribute("message", "Сообщение успешно отправлено в Telegram");
-            } else {
-                redirectAttributes.addFlashAttribute("error", "Не удалось отправить сообщение");
-            }
-        } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Ошибка: " + e.getMessage());
-        }
-        return "redirect:/";  // Перенаправляем на главную страницу
     }
 }

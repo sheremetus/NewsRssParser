@@ -142,10 +142,12 @@
                     <li class="lires" th:each="res : ${resultsTg}">
                         <p th:text="${res.section}"></p>
                         <div th:each="img : ${res.image}">
+
                             <a href="#" onclick="openImage('${@thymeleafUtil.encodeBase64(res.image)}')">
                                 <img width="400" height="300"
                                      th:src="'data:image/png;base64,' + ${@thymeleafUtil.encodeBase64(img)}"/>
                             </a>
+<<<<<<< HEAD
                                             </div>
                                             <form action="/postToTelegram" method="post" style="display: inline;">
                                                 <input type="hidden" name="text" th:value="${res.section}">
@@ -158,6 +160,11 @@
                                                 <span th:text="${error}"></span>
                                             </div>
                                             <br/>
+=======
+
+                        </div>
+                        <br/>
+>>>>>>> parent of dc07f22 (add posting python script, fix bugs, modify application to auto posting)
                         <div th:each="link : ${res.linkHref}">
                             <a th:href="${link}">link</a>
                         </div>
@@ -199,6 +206,7 @@
         });
     });
 </script>
+<<<<<<< HEAD
 <script>
     $(document).ready(function() {
         $('.post-to-telegram').click(function() {
@@ -234,6 +242,8 @@
 
 </script>
 
+=======
+>>>>>>> parent of dc07f22 (add posting python script, fix bugs, modify application to auto posting)
 <script th:inline="javascript">
     /*<![CDATA[*/
     let patterns = /*[[${keywords}]]*/ [];

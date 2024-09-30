@@ -3,4 +3,7 @@
 3
 4
 5
+<<<<<<< HEAD
 7
+=======
+>>>>>>> parent of dc07f22 (add posting python script, fix bugs, modify application to auto posting)
