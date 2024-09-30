@@ -141,14 +141,22 @@
                     <li class="lires" th:each="res : ${resultsTg}">
                         <p th:text="${res.section}"></p>
                         <div th:each="img : ${res.image}">
-
                             <a href="#" onclick="openImage('${@thymeleafUtil.encodeBase64(res.image)}')">
                                 <img width="400" height="300"
                                      th:src="'data:image/png;base64,' + ${@thymeleafUtil.encodeBase64(img)}"/>
                             </a>
-
-                        </div>
-                        <br/>
+                                            </div>
+                                            <form action="/postToTelegram" method="post" style="display: inline;">
+                                                <input type="hidden" name="text" th:value="${res.section}">
+                                                <button type="submit" class="btn btn-primary btn-sm">Запостить в Telegram</button>
+                                            </form>
+                                            <div th:if="${message}" class="alert alert-success" role="alert">
+                                                <span th:text="${message}"></span>
+                                            </div>
+                                            <div th:if="${error}" class="alert alert-danger" role="alert">
+                                                <span th:text="${error}"></span>
+                                            </div>
+                                            <br/>
                         <div th:each="link : ${res.linkHref}">
                             <a th:href="${link}">link</a>
                         </div>
@@ -185,6 +193,25 @@
     $(document).ready(function () {
         $('.datepicker').datepicker({
             format: 'yyyy-mm-dd'
+        });
+    });
+</script>
+<script>
+    $(document).ready(function() {
+        $('.post-to-telegram').click(function() {
+            var text = $(this).data('text');
+
+            $.ajax({
+                url: '/postToTelegram',
+                method: 'POST',
+                data: { text: text },
+                success: function(response) {
+                    alert('Сообщение успешно отправлено в Telegram');
+                },
+                error: function() {
+                    alert('Ошибка при отправке сообщения в Telegram');
+                }
+            });
         });
     });
 </script>
