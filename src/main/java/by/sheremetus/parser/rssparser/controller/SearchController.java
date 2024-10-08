@@ -12,7 +12,9 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -77,4 +79,14 @@ public class SearchController {
                         SearchUtil.isParseTextHasKey(item.getTitle().get(), keyword))
                 .collect(Collectors.toList());
     }
+
+    @PostMapping("/postRssToTelegram")
+    public String postRssToTelegram(@RequestParam String text,
+                                    @RequestParam(required = false) String scheduleTime,
+                                    RedirectAttributes redirectAttributes) {
+        // Logic for posting RSS content to Telegram
+        // Similar to postToTelegram method
+        return "redirect:/searchAll";
+    }
+
 }

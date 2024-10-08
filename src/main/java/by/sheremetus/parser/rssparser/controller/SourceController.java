@@ -1,6 +1,7 @@
 package by.sheremetus.parser.rssparser.controller;
 
 import by.sheremetus.parser.rssparser.entity.Source;
+import by.sheremetus.parser.rssparser.repo.PublicationChannelRepository;
 import by.sheremetus.parser.rssparser.repo.SourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -15,11 +16,17 @@ import java.util.List;
 public class SourceController {
     @Autowired
     private SourceRepository sourceRepository;
+    @Autowired
+    private TelegramController telegramController;
+    @Autowired
+    private PublicationChannelRepository publicationChannelRepository;
 
     @GetMapping("/")
     public String index(Model model) {
         List<Source> sourceList = sourceRepository.findAll();
         model.addAttribute("sources", sourceList);
+        telegramController.getTelegramSources(model);
+
         return "index";
     }
 
@@ -36,4 +43,5 @@ public class SourceController {
         sourceRepository.deleteById(id);
         return "redirect:/";
     }
+
 }

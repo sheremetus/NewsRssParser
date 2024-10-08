@@ -1,33 +1,40 @@
 package by.sheremetus.parser.rssparser.controller;
 
 import by.sheremetus.parser.rssparser.entity.SearchResult;
+import by.sheremetus.parser.rssparser.repo.SourceRepository;
+import by.sheremetus.parser.rssparser.service.TelegramService;
 import by.sheremetus.parser.rssparser.util.SearchUtil;
 import nl.siegmann.epublib.domain.Book;
 import nl.siegmann.epublib.domain.Resource;
 import nl.siegmann.epublib.epub.EpubReader;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.Arrays;
 
 @Controller
 public class EpubController {
-
-    private final TemplateEngine templateEngine;
+    @Autowired
+    private SourceRepository sourceRepository;
+    @Autowired
+    private TelegramController telegramController;
+    @Autowired
+    private TelegramService telegramService;
+    private TemplateEngine templateEngine;
 
     private final String directoryPath = "D:/Java/Проекты/RSSParser/results";
     private final String pythonExecutablePath = "C:/Users/kirja/AppData/Local/Programs/Python/Python312/python.exe";
@@ -165,4 +172,17 @@ public class EpubController {
             throw new RuntimeException("Error executing Python script", e);
         }
     }
+
+
+    @PostMapping("/postToTelegram")
+    public String postToTelegram(@RequestParam("text") String text, @RequestParam("scheduleTime") String scheduleTime) {
+        // Преобразование строки scheduleTime в объект LocalDateTime
+        LocalDateTime scheduledDateTime = LocalDateTime.parse(scheduleTime);
+
+        // Вызов метода для отложенной отправки
+        telegramService.scheduleMessage(text, scheduledDateTime);
+
+        return "redirect:/";
+    }
+
 }
