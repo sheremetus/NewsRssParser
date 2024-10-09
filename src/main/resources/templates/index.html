@@ -3,7 +3,8 @@
 <head>
     <title>Source List</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css"
+          rel="stylesheet">
     <link th:href="@{/css/index.css}" rel="stylesheet"/>
 </head>
 <body>
@@ -43,7 +44,8 @@
         <div class="col-md-8">
             <form action="/searchAll" method="get">
                 <div class="form-group">
-                    <input type="text" name="keyword" class="form-control" placeholder="Поиск информации по ключевым словам по телеграмму и RSS" required>
+                    <input type="text" name="keyword" class="form-control"
+                           placeholder="Поиск информации по ключевым словам по телеграмму и RSS" required>
                 </div>
                 <div class="form-group">
                     <label for="date_start">Выберите дату с которой начать поиск:</label>
@@ -57,7 +59,8 @@
                     <button type="submit" class="btn btn-secondary">Поиск</button>
                 </div>
                 <div class="form-group">
-                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ModalPublicationChannels">
+                    <button type="button" class="btn btn-primary" data-toggle="modal"
+                            data-target="#ModalPublicationChannels">
                         Определить каналы получатели сообщений
                     </button>
                 </div>
@@ -70,13 +73,17 @@
                             <p th:text="${res.section}"></p>
                             <div th:each="img : ${res.image}">
                                 <a href="#" class="open-image" th:data-image="${@thymeleafUtil.encodeBase64(img)}">
-                                    <img width="400" height="300" th:src="'data:image/png;base64,' + ${@thymeleafUtil.encodeBase64(img)}"/>
+                                    <img width="400" height="300"
+                                         th:src="'data:image/png;base64,' + ${@thymeleafUtil.encodeBase64(img)}"/>
                                 </a>
                             </div>
                         </a>
                         <form action="/postToTelegram" method="post">
                             <input type="hidden" name="text" th:value="${res.section}">
-                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ModalPostToTelegram">
+                            <button type="button" class="btn btn-primary" data-toggle="modal"
+                                    data-target="#ModalPostToTelegram"
+                                    th:data-text="${res.section}"
+                            >
                                 Запостить в Telegram
                             </button>
                         </form>
@@ -98,7 +105,9 @@
                         <p th:text="${item.getDescription().get()}"></p>
                         <form action="/postRssToTelegram" method="post">
                             <input type="hidden" name="text" th:value="${item.getDescription().get()}">
-                            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#ModalPostToTelegram">
+                            <button type="button" class="btn btn-primary" data-toggle="modal"
+                                    data-target="#ModalPostToTelegram"
+                                    th:data-text="${item.title.get()}">
                                 Запостить в Telegram
                             </button>
                         </form>
@@ -110,7 +119,8 @@
 </div>
 
 <!-- Модальное окно для определения каналов публикации -->
-<div class="modal fade" id="ModalPublicationChannels" tabindex="-1" role="dialog" aria-labelledby="ModalPublicationChannelsLabel" aria-hidden="true">
+<div class="modal fade" id="ModalPublicationChannels" tabindex="-1" role="dialog"
+     aria-labelledby="ModalPublicationChannelsLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
@@ -120,25 +130,46 @@
                 </button>
             </div>
             <div class="modal-body">
-                <!-- Содержимое модального окна -->
+                <form action="/changePublicationChannels" method="post">
+                    <ul class="list-unstyled">
+
+                        <li th:each="publicationChannel : ${publicationChannels}" class="source-item">
+
+
+                            <input type="checkbox" name="ids" th:value="${publicationChannel.id}"
+                                   th:checked="${publicationChannel.isActive}"/>
+                            <span th:text="${publicationChannel.channelName}"></span>
+
+                        </li>
+                        <button type="submit" class="btn btn-primary">Изменить</button>
+                </form>
+                </ul>
             </div>
         </div>
     </div>
 </div>
 
 <!-- Модальное окно "Запостить в Telegram" -->
-<div class="modal fade" id="ModalPostToTelegram" tabindex="-1" role="dialog" aria-labelledby="ModalPostToTelegramLabel" aria-hidden="true">
+<div class="modal fade" id="ModalPostToTelegram" tabindex="-1" role="dialog" aria-labelledby="ModalPostToTelegramLabel"
+     aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="ModalPostToTelegramLabel">Запостить в Telegram</h5>
+                <h5 class="modal-title" id="editModalLabel">Редактировать текст</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
-            <div class="modal-body">
-                <!-- Содержимое модального окна -->
-            </div>
+            <form action="/postToTelegram" method="post">
+                <div class="modal-body">
+                    <textarea name="text" id="editText" class="form-control" rows="5"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <input type="datetime-local" id="scheduleTime" name="scheduleTime" class="form-control">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Отправить</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -181,7 +212,10 @@
 
 // Обработчик для кнопки "Запостить в Telegram"
         $('#ModalPostToTelegram').on('show.bs.modal', function (event) {
-// Ваш код для обработки открытия модального окна
+            var button = $(event.relatedTarget); // Кнопка, которая вызвала модальное окно
+            var text = button.data('text'); // Извлечение информации из атрибута data-text
+            var modal = $(this);
+            modal.find('.modal-body #editText').val(text); // Установка значения в поле ввода внутри модального окна
         });
     });
 </script>

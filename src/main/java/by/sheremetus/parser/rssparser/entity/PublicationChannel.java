@@ -12,12 +12,27 @@ public class PublicationChannel {
     private Long id;
 
     private String channelName;
+    private boolean active;
+
+    public PublicationChannel(String channelName, boolean Active) {
+        this.channelName = channelName;
+        this.active = Active;
+    }
 
     public PublicationChannel(String channelName) {
         this.channelName = channelName;
     }
 
     public PublicationChannel() {
+    }
+
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 
     public String getChannelName() {

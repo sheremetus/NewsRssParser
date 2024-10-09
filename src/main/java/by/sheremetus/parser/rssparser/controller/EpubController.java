@@ -28,12 +28,6 @@ import java.util.stream.Collectors;
 
 @Controller
 public class EpubController {
-    @Autowired
-    private SourceRepository sourceRepository;
-    @Autowired
-    private TelegramController telegramController;
-    @Autowired
-    private TelegramService telegramService;
     private TemplateEngine templateEngine;
 
     private final String directoryPath = "D:/Java/Проекты/RSSParser/results";
@@ -174,15 +168,6 @@ public class EpubController {
     }
 
 
-    @PostMapping("/postToTelegram")
-    public String postToTelegram(@RequestParam("text") String text, @RequestParam("scheduleTime") String scheduleTime) {
-        // Преобразование строки scheduleTime в объект LocalDateTime
-        LocalDateTime scheduledDateTime = LocalDateTime.parse(scheduleTime);
 
-        // Вызов метода для отложенной отправки
-        telegramService.scheduleMessage(text, scheduledDateTime);
-
-        return "redirect:/";
-    }
 
 }

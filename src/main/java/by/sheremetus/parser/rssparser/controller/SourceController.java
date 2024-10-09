@@ -1,5 +1,6 @@
 package by.sheremetus.parser.rssparser.controller;
 
+import by.sheremetus.parser.rssparser.entity.PublicationChannel;
 import by.sheremetus.parser.rssparser.entity.Source;
 import by.sheremetus.parser.rssparser.repo.PublicationChannelRepository;
 import by.sheremetus.parser.rssparser.repo.SourceRepository;
@@ -24,7 +25,9 @@ public class SourceController {
     @GetMapping("/")
     public String index(Model model) {
         List<Source> sourceList = sourceRepository.findAll();
+        List<PublicationChannel> publicationChannelsList = publicationChannelRepository.findAll();
         model.addAttribute("sources", sourceList);
+        model.addAttribute("publicationChannels", publicationChannelsList);
         telegramController.getTelegramSources(model);
 
         return "index";

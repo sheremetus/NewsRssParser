@@ -69,3 +69,6 @@ body {
 .highlight {
     background-color: orange;
 }
+.modal-body .source-item {
+    color: #000; /* Черный цвет текста */
+}

@@ -15,7 +15,6 @@ load_dotenv()
 API_ID = os.getenv('API_ID')
 API_HASH = os.getenv('API_HASH')
 BOT_TOKEN = os.getenv('BOT_TOKEN')  # Замените на токен вашего бота
-CHANNEL_USERNAME = os.getenv('CHANNEL_USERNAME') # Замените на username вашего канала
 
 async def send_message(text):
     async with TelegramClient('bot_session', API_ID, API_HASH) as client:
@@ -24,7 +23,7 @@ async def send_message(text):
 
 
 
-
 if __name__ == "__main__":
     text = sys.argv[1]
+    CHANNEL_USERNAME = sys.argv[2]
     asyncio.run(send_message(text))

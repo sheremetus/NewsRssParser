@@ -1,8 +1,11 @@
 package by.sheremetus.parser.rssparser.controller;
 
+import by.sheremetus.parser.rssparser.entity.PublicationChannel;
 import by.sheremetus.parser.rssparser.entity.Source;
 import by.sheremetus.parser.rssparser.entity.TgSource;
+import by.sheremetus.parser.rssparser.repo.PublicationChannelRepository;
 import by.sheremetus.parser.rssparser.repo.SourceRepository;
+import by.sheremetus.parser.rssparser.service.TelegramService;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -12,11 +15,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +31,10 @@ public class TelegramController {
 
     @Autowired
     public SourceRepository sourceRepository;
+    @Autowired
+    private TelegramService telegramService;
+    @Autowired
+    private PublicationChannelRepository publicationChannelRepository;
 
     @GetMapping("/getTelegramSources")
     public String getTelegramSources(Model model) {
@@ -79,5 +89,19 @@ public class TelegramController {
         List<Source> sourceList = sourceRepository.findAll();
         model.addAttribute("sources", sourceList);
         return "index";
+    }
+
+
+    @PostMapping("/postToTelegram")
+    public String postToTelegram(@RequestParam("text") String text, @RequestParam("scheduleTime") String scheduleTime) {
+        // Преобразование строки scheduleTime в объект LocalDateTime
+        LocalDateTime scheduledDateTime = LocalDateTime.parse(scheduleTime);
+
+        List<PublicationChannel> publicationChannelList = publicationChannelRepository.findByActiveIsTrue();
+
+        // Вызов метода для отложенной отправки
+        telegramService.scheduleMessage(text, scheduledDateTime, publicationChannelList);
+
+        return "redirect:/";
     }
 }
