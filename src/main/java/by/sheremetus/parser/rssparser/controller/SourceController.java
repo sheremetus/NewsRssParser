@@ -4,6 +4,7 @@ import by.sheremetus.parser.rssparser.entity.PublicationChannel;
 import by.sheremetus.parser.rssparser.entity.Source;
 import by.sheremetus.parser.rssparser.repo.PublicationChannelRepository;
 import by.sheremetus.parser.rssparser.repo.SourceRepository;
+import by.sheremetus.parser.rssparser.service.TelegramService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -20,6 +21,8 @@ public class SourceController {
     @Autowired
     private TelegramController telegramController;
     @Autowired
+    private TelegramService telegramService;
+    @Autowired
     private PublicationChannelRepository publicationChannelRepository;
 
     @GetMapping("/")
@@ -28,7 +31,8 @@ public class SourceController {
         List<PublicationChannel> publicationChannelsList = publicationChannelRepository.findAll();
         model.addAttribute("sources", sourceList);
         model.addAttribute("publicationChannels", publicationChannelsList);
-        telegramController.getTelegramSources(model);
+        model.addAttribute("tgSources", telegramService.getTelegramSources(model)) ;
+
 
         return "index";
     }

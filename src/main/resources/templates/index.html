@@ -5,6 +5,7 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css"
           rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.css"/>
     <link th:href="@{/css/index.css}" rel="stylesheet"/>
 </head>
 <body>
@@ -22,6 +23,11 @@
                             <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
                         </form>
                     </li>
+                    <form action="/add" method="post" style="display:inline;">
+                        <input type="text" name="url" class="form-control"
+                               placeholder="Добавить источники RSS" required>
+                        <button type="submit" class="btn btn-primary">Добавить</button>
+                    </form>
                 </ul>
             </div>
         </div>
@@ -73,20 +79,23 @@
                             <p th:text="${res.section}"></p>
                             <div th:each="img : ${res.image}">
                                 <a href="#" class="open-image" th:data-image="${@thymeleafUtil.encodeBase64(img)}">
-                                    <img width="400" height="300"
-                                         th:src="'data:image/png;base64,' + ${@thymeleafUtil.encodeBase64(img)}"/>
+                                    <a href="#" data-fancybox="gallery" th:data-src="'data:image/png;base64,' + ${@thymeleafUtil.encodeBase64(img)}">
+                                        <img style="max-width: 100%; height: auto;" th:src="'data:image/png;base64,' + ${@thymeleafUtil.encodeBase64(img)}"/>
+                                    </a>
                                 </a>
                             </div>
                         </a>
-                        <form action="/postToTelegram" method="post">
+                        <form action="/postToTelegram" method="post" enctype="multipart/form-data" class="telegram-post-form">
                             <input type="hidden" name="text" th:value="${res.section}">
                             <button type="button" class="btn btn-primary" data-toggle="modal"
                                     data-target="#ModalPostToTelegram"
                                     th:data-text="${res.section}"
-                            >
+                                    th:data-images="${@thymeleafUtil.encodeBase64List(res.image)}">
                                 Запостить в Telegram
                             </button>
                         </form>
+
+
                         <div th:if="${message}" class="alert alert-success" role="alert">
                             <span th:text="${message}"></span>
                         </div>
@@ -139,9 +148,21 @@
                             <input type="checkbox" name="ids" th:value="${publicationChannel.id}"
                                    th:checked="${publicationChannel.isActive}"/>
                             <span th:text="${publicationChannel.channelName}"></span>
-
+                            <form action="/deletePublicationChannels" method="post" style="display:inline;">
+                                <input type="hidden" name="id" th:value="${publicationChannel.id}">
+                                <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                            </form>
                         </li>
-                        <button type="submit" class="btn btn-primary">Изменить</button>
+
+                        <button type="submit" class="btn btn-primary">Изменить состояние</button>
+                </form>
+                <br>
+                <br>
+                <form action="/addPublicationChannels" method="post" style="display:inline;">
+                    <input type="text" name="channelName" class="form-control"
+                           placeholder="Добавить имя канала в формате @... " required>
+                    <br>
+                    <button type="submit" class="btn btn-primary">Добавить</button>
                 </form>
                 </ul>
             </div>
@@ -160,9 +181,13 @@
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
-            <form action="/postToTelegram" method="post">
+            <form action="/postToTelegram" method="post" enctype="multipart/form-data">
                 <div class="modal-body">
                     <textarea name="text" id="editText" class="form-control" rows="5"></textarea>
+                    <div id="imagePreview"></div>
+                    <input type="file" name="image" accept="image/*" multiple id="imageInput">
+                    <input type="hidden" name="imageBase64" id="imageBase64">
+
                 </div>
                 <div class="modal-footer">
                     <input type="datetime-local" id="scheduleTime" name="scheduleTime" class="form-control">
@@ -178,6 +203,12 @@
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@4.0/dist/fancybox.umd.js"></script>
+<script>
+    Fancybox.bind("[data-fancybox]", {
+        // Your options here
+    });
+</script>
 <script th:inline="javascript">
     /*<![CDATA[*/
     let patterns = /*[[${keywords}]]*/ [];
@@ -212,32 +243,89 @@
 
 // Обработчик для кнопки "Запостить в Telegram"
         $('#ModalPostToTelegram').on('show.bs.modal', function (event) {
-            var button = $(event.relatedTarget); // Кнопка, которая вызвала модальное окно
-            var text = button.data('text'); // Извлечение информации из атрибута data-text
+            var button = $(event.relatedTarget);
+            var text = button.data('text');
+            var images = button.data('images');
             var modal = $(this);
-            modal.find('.modal-body #editText').val(text); // Установка значения в поле ввода внутри модального окна
+            modal.find('.modal-body #editText').val(text);
+
+            // Clear previous preview
+            $('#imagePreview').empty();
+
+            // Add images to preview and update imageBase64 input
+            if (images && images.length > 0) {
+                var base64Images = [];
+                images.forEach(function(img, index) {
+                    $('#imagePreview').append(
+                        '<div class="image-container">' +
+                        '<img src="data:image/png;base64,' + img + '" style="max-width: 100%; height: auto; margin: 5px;">' +
+                        '<button type="button" class="btn btn-danger btn-sm remove-image" data-index="' + index + '">Удалить</button>' +
+                        '</div>'
+                    );
+                    base64Images.push('data:image/png;base64,' + img);
+                });
+                $('#imageBase64').val(JSON.stringify(base64Images));
+            }
+        });
+        $(document).on('click', '.remove-image', function() {
+            var index = $(this).data('index');
+            $(this).closest('.image-container').remove();
+
+            var base64Images = JSON.parse($('#imageBase64').val());
+            base64Images.splice(index, 1);
+            $('#imageBase64').val(JSON.stringify(base64Images));
         });
     });
 </script>
 <script>
-    $(document).ready(function () {
-        $('.post-to-telegram').click(function () {
-            var text = $(this).data('text');
+    $('form.telegram-post-form').on('submit', function(e) {
+        e.preventDefault();
+        var formData = new FormData(this);
 
-            $.ajax({
-                url: '/postToTelegram',
-                method: 'POST',
-                data: {text: text},
-                success: function (response) {
-                    alert('Сообщение успешно отправлено в Telegram');
-                },
-                error: function () {
-                    alert('Ошибка при отправке сообщения в Telegram');
-                }
-            });
+        // Remove imageBase64 if it's empty
+        if (!$('#imageBase64').val()) {
+            formData.delete('imageBase64');
+        }
+
+        $.ajax({
+            url: '/postToTelegram',
+            type: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                alert('Сообщение успешно отправлено в Telegram');
+                $('#ModalPostToTelegram').modal('hide');
+            },
+            error: function() {
+                alert('Ошибка при отправке сообщения в Telegram');
+            }
         });
     });
-</script>
 
+</script>
+<script>
+    $('#imageInput').on('change', function(event) {
+        $('#imagePreview').empty();
+        var files = event.target.files;
+        var base64Images = [];
+
+        for (var i = 0; i < files.length; i++) {
+            (function(file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var base64 = e.target.result;
+                    $('#imagePreview').append('<img src="' + base64 + '" style="max-width: 100%; height: auto; margin: 5px;">');
+                    base64Images.push(base64);
+                    $('#imageBase64').val(JSON.stringify(base64Images));
+                }
+                reader.readAsDataURL(file);
+            })(files[i]);
+        }
+    });
+
+
+
+</script>
 </body>
 </html>

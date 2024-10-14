@@ -72,3 +72,13 @@ body {
 .modal-body .source-item {
     color: #000; /* Черный цвет текста */
 }
+.image-container {
+    position: relative;
+    display: inline-block;
+    margin: 5px;
+}
+.remove-image {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}

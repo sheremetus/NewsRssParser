@@ -16,15 +16,40 @@ public class PublicationChannelController {
     @Autowired
     PublicationChannelRepository publicationChannelRepository;
 
-    @PostMapping("/changePublicationChannels")
-    public String changePublicationChannels(@RequestParam("ids") List<Long> ids,
-                                            Model model) {
+    @PostMapping("/addPublicationChannels")
+    public String addPublicationChannels(@RequestParam String channelName) {
+        PublicationChannel publicationChannel = new PublicationChannel();
+        publicationChannel.setChannelName(channelName);
+        publicationChannelRepository.save(publicationChannel);
+        return "redirect:/";
+    }
 
-        List<PublicationChannel> publicationChannelList = publicationChannelRepository.findAllById(ids);
-        for (PublicationChannel p : publicationChannelList) {
-            p.setActive(true);
+    @PostMapping("/deletePublicationChannels")
+    public String deletePublicationChannels(@RequestParam Long id) {
+        publicationChannelRepository.deleteById(id);
+        return "redirect:/";
+    }
+
+
+    @PostMapping("/changePublicationChannels")
+    public String changePublicationChannels(@RequestParam(name = "ids", required = false) List<Long> ids, Model model) {
+// Получаем все публикационные каналы
+        List<PublicationChannel> allPublicationChannels = publicationChannelRepository.findAll();
+
+        if (ids != null) {
+            for (PublicationChannel p : allPublicationChannels) {
+                p.setActive(!ids.isEmpty() && ids.contains(p.getId()));
+            }
+        } else {
+            for (PublicationChannel p : allPublicationChannels) {
+
+                p.setActive(false);
+            }
+
         }
-        publicationChannelRepository.saveAll(publicationChannelList);
+
+// Сохраняем все изменения
+        publicationChannelRepository.saveAll(allPublicationChannels);
 
         return "redirect:/";
     }

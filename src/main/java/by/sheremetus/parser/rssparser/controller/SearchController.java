@@ -1,8 +1,11 @@
 package by.sheremetus.parser.rssparser.controller;
 
+import by.sheremetus.parser.rssparser.entity.PublicationChannel;
 import by.sheremetus.parser.rssparser.entity.SearchResult;
 import by.sheremetus.parser.rssparser.entity.Source;
+import by.sheremetus.parser.rssparser.repo.PublicationChannelRepository;
 import by.sheremetus.parser.rssparser.repo.SourceRepository;
+import by.sheremetus.parser.rssparser.service.TelegramService;
 import by.sheremetus.parser.rssparser.util.DateUtil;
 import by.sheremetus.parser.rssparser.util.SearchUtil;
 import com.apptasticsoftware.rssreader.Item;
@@ -12,13 +15,14 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Controller
@@ -26,6 +30,10 @@ public class SearchController {
 
     @Autowired
     private SourceRepository sourceRepository;
+    @Autowired
+    private PublicationChannelRepository publicationChannelRepository;
+    @Autowired
+    TelegramService telegramService;
 
     private static final String START_DATE_FILE = "start_date.txt";
     private static final String END_DATE_FILE = "end_date.txt";
@@ -33,14 +41,21 @@ public class SearchController {
 
     @GetMapping("/searchAll")
     public String searchAll(@RequestParam String keyword, Model model,
-                            @RequestParam("sourceIndex") List<Integer> sourceIndices,
+                            @RequestParam(name = "sourceIndex", required = false) List<Integer> sourceIndices,
                             @RequestParam("start_date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date startDate,
                             @RequestParam("end_date") @DateTimeFormat(pattern = "yyyy-MM-dd") Date endDate) {
 
         List<Item> resultsRSS = searchRSS(keyword);
-        List<SearchResult> resultsTg = searchTelegram(keyword, sourceIndices, startDate, endDate);
+        if (sourceIndices != null) {
+            List<SearchResult> resultsTg = searchTelegram(keyword, sourceIndices, startDate, endDate);
+            model.addAttribute("resultsTg", resultsTg);
+        }
+        List<Source> sourceList = sourceRepository.findAll();
+        List<PublicationChannel> publicationChannelsList = publicationChannelRepository.findAll();
 
-        model.addAttribute("resultsTg", resultsTg);
+        model.addAttribute("sources", sourceList);
+        model.addAttribute("publicationChannels", publicationChannelsList);
+        model.addAttribute("tgSources", telegramService.getTelegramSources(model));
         model.addAttribute("resultsRSS", resultsRSS);
         model.addAttribute("keywords", Arrays.asList(keyword.trim().split(",")));
 
@@ -80,13 +95,5 @@ public class SearchController {
                 .collect(Collectors.toList());
     }
 
-    @PostMapping("/postRssToTelegram")
-    public String postRssToTelegram(@RequestParam String text,
-                                    @RequestParam(required = false) String scheduleTime,
-                                    RedirectAttributes redirectAttributes) {
-        // Logic for posting RSS content to Telegram
-        // Similar to postToTelegram method
-        return "redirect:/searchAll";
-    }
 
 }
